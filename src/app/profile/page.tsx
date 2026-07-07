@@ -27,6 +27,9 @@ export default async function ProfilePage() {
         <a href="/radar" className="inline-block text-xs font-semibold text-[#cf8a5e] mb-4">
           → Go to Scene Radar
         </a>
+        <a href="/chats" className="inline-block text-xs font-semibold text-[#cf8a5e] mb-4 ml-4">
+          → Go to Chats
+        </a>
         <ProfileForm initialProfile={profile} />
       </div>
     </main>
