@@ -81,13 +81,13 @@ export default function LoginPage() {
         {step === "code" && (
           <form onSubmit={verifyCode} className="space-y-3">
             <p className="text-xs text-[#aca3bd]">
-              Enter the 6-digit code we sent to {email}
+              Enter the  code we sent to {email}
             </p>
             <input
               type="text"
               required
-              maxLength={6}
-              placeholder="123456"
+              maxLength={8}
+              placeholder="12345678"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               className="w-full rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm tracking-widest outline-none focus:border-[#cf8a5e]"
