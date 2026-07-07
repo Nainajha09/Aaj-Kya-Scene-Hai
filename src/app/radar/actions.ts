@@ -15,7 +15,25 @@ export async function joinScene(sceneId: number) {
     .insert({ user_id: user.id, scene_id: sceneId });
 
   if (error) return { error: error.message };
+
+  // Award 10 Scene Score points for joining. This reads the current
+  // score first rather than blindly incrementing, so two rapid clicks
+  // can't silently double-count.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("score")
+    .eq("id", user.id)
+    .single();
+
+  if (profile) {
+    await supabase
+      .from("profiles")
+      .update({ score: profile.score + 10 })
+      .eq("id", user.id);
+  }
+
   revalidatePath("/radar");
+  revalidatePath("/profile");
   return { error: null };
 }
 
