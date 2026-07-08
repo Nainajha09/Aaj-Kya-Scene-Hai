@@ -32,6 +32,15 @@ export default async function ChatThreadPage({
     )
     .order("created_at", { ascending: true });
 
+  // Mark any messages this person sent me as read, now that I've
+  // opened the thread and actually seen them.
+  await supabase
+    .from("messages")
+    .update({ read_at: new Date().toISOString() })
+    .eq("sender_id", userId)
+    .eq("receiver_id", user.id)
+    .is("read_at", null);
+
   return (
     <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 flex flex-col">
       <div className="max-w-sm w-full mx-auto flex-1 flex flex-col">
