@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import RadarList from "./RadarList";
 import BottomNav from "@/components/BottomNav";
 
-export type Attendee = { name: string; role: string };
+export type Attendee = { name: string; role: string; avatarUrl: string | null };
 export type Scene = {
   id: number;
   name: string;
@@ -16,7 +16,7 @@ export type Scene = {
   starts_at: string;
   ends_at: string | null;
 };
-export type InvitablePerson = { id: string; name: string };
+export type InvitablePerson = { id: string; name: string; avatar_url: string | null };
 
 export default async function RadarPage() {
   const supabase = await createClient();
@@ -34,14 +34,14 @@ export default async function RadarPage() {
   const [{ data: scenes }, { data: activeCheckins }, { data: people }] = await Promise.all([
     supabase
       .from("scenes")
-      .select("*")
+      .select("id, name, tag, lat, lng, vibe, is_live, created_by, starts_at, ends_at")
       .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
       .order("starts_at", { ascending: true }),
     supabase
       .from("checkins")
-      .select("scene_id, user_id, profiles(name, role)")
+      .select("scene_id, user_id, profiles(name, role, avatar_url)")
       .is("left_at", null),
-    supabase.from("profiles").select("id, name").neq("id", user.id),
+    supabase.from("profiles").select("id, name, avatar_url").neq("id", user.id),
   ]);
 
   const myCheckins = (activeCheckins ?? [])
@@ -57,7 +57,11 @@ export default async function RadarPage() {
     if (profile) {
       attendeesByScene[c.scene_id] = [
         ...(attendeesByScene[c.scene_id] ?? []),
-        { name: profile.name || "Someone", role: profile.role || "" },
+        {
+          name: profile.name || "Someone",
+          role: profile.role || "",
+          avatarUrl: profile.avatar_url || null,
+        },
       ];
     }
   });

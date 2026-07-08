@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import BottomNav from "@/components/BottomNav";
+import Avatar from "@/components/Avatar";
 
 export default async function ChatsPage() {
   const supabase = await createClient();
@@ -18,7 +19,7 @@ export default async function ChatsPage() {
   // "people you've checked into a scene with."
   const { data: people } = await supabase
     .from("profiles")
-    .select("id, name, role, one_liner")
+    .select("id, name, role, one_liner, avatar_url")
     .neq("id", user.id);
 
   // Unread messages sent TO me, grouped by who sent them.
@@ -56,18 +57,21 @@ export default async function ChatsPage() {
                 href={`/chats/${p.id}`}
                 className="flex items-center justify-between rounded-2xl bg-[#221f38] border border-white/5 p-4"
               >
-                <div>
-                  <div className="font-bold text-[15px]">
-                    {p.name || "Unnamed Scene-ster"}
-                  </div>
-                  <div className="text-xs text-[#b6abd9]">
-                    {p.role || "No role set"}
-                  </div>
-                  {p.one_liner && (
-                    <div className="text-xs text-[#b298e7] mt-1">
-                      {p.one_liner}
+                <div className="flex items-center gap-3">
+                  <Avatar name={p.name} avatarUrl={p.avatar_url} size={40} />
+                  <div>
+                    <div className="font-bold text-[15px]">
+                      {p.name || "Unnamed Scene-ster"}
                     </div>
-                  )}
+                    <div className="text-xs text-[#b6abd9]">
+                      {p.role || "No role set"}
+                    </div>
+                    {p.one_liner && (
+                      <div className="text-xs text-[#b298e7] mt-1">
+                        {p.one_liner}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {unread > 0 && (
                   <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-[#b298e7] text-[#1e1830] text-[11px] font-bold flex items-center justify-center">

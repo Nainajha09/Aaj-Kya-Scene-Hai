@@ -7,18 +7,10 @@ import { distanceKm, etaMinutes } from "@/lib/distance";
 import { getSceneStatus, formatSceneTime } from "@/lib/sceneStatus";
 import { createClient } from "@/lib/supabase/client";
 import AddSceneForm from "./AddSceneForm";
+import Avatar from "@/components/Avatar";
 import type { Scene, Attendee, InvitablePerson } from "./page";
 
 const FILTERS = ["All", "Coworking", "Café Scene", "Founders", "Pop-up Scene", "Party"];
-
-function initials(name: string) {
-  return name
-    .split(" ")
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
 
 function AvatarStack({ attendees }: { attendees: Attendee[] }) {
   const shown = attendees.slice(0, 3);
@@ -28,14 +20,9 @@ function AvatarStack({ attendees }: { attendees: Attendee[] }) {
       {shown.map((p, i) => (
         <div
           key={p.name + i}
-          className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-extrabold text-[#1e1830] border-2 border-[#221f38]"
-          style={{
-            background: "linear-gradient(135deg, #b298e7, #f5b8d5)",
-            marginLeft: i === 0 ? 0 : -8,
-            zIndex: shown.length - i,
-          }}
+          style={{ marginLeft: i === 0 ? 0 : -8, zIndex: shown.length - i }}
         >
-          {initials(p.name)}
+          <Avatar name={p.name} avatarUrl={p.avatarUrl} size={24} className="border-2 border-[#221f38]" />
         </div>
       ))}
     </div>
@@ -233,7 +220,10 @@ function InvitePanel({
                 key={p.id}
                 className="flex items-center justify-between rounded-lg bg-[#2d2949] px-3 py-2.5"
               >
-                <span className="text-sm">{p.name || "Unnamed"}</span>
+                <div className="flex items-center gap-2">
+                  <Avatar name={p.name} avatarUrl={p.avatar_url} size={26} />
+                  <span className="text-sm">{p.name || "Unnamed"}</span>
+                </div>
                 <button
                   onClick={() => sendInvite(p.id)}
                   disabled={sent}
@@ -420,12 +410,7 @@ function DetailSheet({
               <div className="space-y-2">
                 {attendees.map((a, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-extrabold text-[#1e1830]"
-                      style={{ background: "linear-gradient(135deg, #b298e7, #f5b8d5)" }}
-                    >
-                      {initials(a.name)}
-                    </div>
+                    <Avatar name={a.name} avatarUrl={a.avatarUrl} size={32} />
                     <div>
                       <div className="text-sm font-semibold">{a.name}</div>
                       <div className="text-xs text-[#b6abd9]">{a.role}</div>

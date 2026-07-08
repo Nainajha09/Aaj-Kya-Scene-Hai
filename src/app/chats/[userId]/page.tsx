@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MessageThread from "./MessageThread";
+import Avatar from "@/components/Avatar";
 
 export default async function ChatThreadPage({
   params,
@@ -20,7 +21,7 @@ export default async function ChatThreadPage({
 
   const { data: otherPerson } = await supabase
     .from("profiles")
-    .select("id, name, role, one_liner, obsession")
+    .select("id, name, role, one_liner, obsession, avatar_url")
     .eq("id", userId)
     .single();
 
@@ -53,10 +54,13 @@ export default async function ChatThreadPage({
         <a href="/chats" className="text-xs text-[#b6abd9] mb-3">
           ← Back to Chats
         </a>
-        <h1 className="text-xl font-bold mb-1">
-          {otherPerson?.name || "Unknown"}
-        </h1>
-        <p className="text-xs text-[#b6abd9] mb-6">{otherPerson?.role}</p>
+        <div className="flex items-center gap-3 mb-6">
+          <Avatar name={otherPerson?.name ?? ""} avatarUrl={otherPerson?.avatar_url} size={44} />
+          <div>
+            <h1 className="text-xl font-bold">{otherPerson?.name || "Unknown"}</h1>
+            <p className="text-xs text-[#b6abd9]">{otherPerson?.role}</p>
+          </div>
+        </div>
 
         <MessageThread
           myId={user.id}
