@@ -50,13 +50,13 @@ export default function ConciergePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 pb-20 flex flex-col">
+    <main className="min-h-screen bg-[#15132a] text-[#f3eefb] p-6 pb-20 flex flex-col">
       <div className="max-w-sm w-full mx-auto flex-1 flex flex-col">
-        <a href="/profile" className="text-xs text-[#aca3bd] mb-3">
+        <a href="/profile" className="text-xs text-[#b6abd9] mb-3">
           ← Back to Profile
         </a>
         <h1 className="text-2xl font-bold mb-1">Scene Concierge</h1>
-        <p className="text-sm text-[#aca3bd] mb-6">
+        <p className="text-sm text-[#b6abd9] mb-6">
           Your AI wingman for actually meeting people.
         </p>
 
@@ -66,15 +66,15 @@ export default function ConciergePage() {
               key={i}
               className={
                 m.role === "user"
-                  ? "ml-auto max-w-[85%] bg-[#cf8a5e] text-[#1a1108] rounded-2xl rounded-br-sm px-4 py-2 text-sm w-fit"
-                  : "mr-auto max-w-[85%] bg-[#1f1d27] border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2 text-sm w-fit"
+                  ? "ml-auto max-w-[85%] bg-[#b298e7] text-[#1e1830] rounded-2xl rounded-br-sm px-4 py-2 text-sm w-fit"
+                  : "mr-auto max-w-[85%] bg-[#221f38] border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2 text-sm w-fit"
               }
             >
               {m.content}
             </div>
           ))}
           {loading && (
-            <div className="mr-auto max-w-[85%] bg-[#1f1d27] border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2 text-sm w-fit text-[#aca3bd]">
+            <div className="mr-auto max-w-[85%] bg-[#221f38] border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2 text-sm w-fit text-[#b6abd9]">
               thinking...
             </div>
           )}
@@ -86,11 +86,11 @@ export default function ConciergePage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="e.g. I want to meet early-stage founders"
-            className="flex-1 rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#cf8a5e]"
+            className="flex-1 rounded-lg bg-[#221f38] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#b298e7]"
           />
           <button
             disabled={loading}
-            className="rounded-lg bg-[#cf8a5e] text-[#1a1108] font-semibold px-4 py-3 text-sm disabled:opacity-60"
+            className="rounded-lg bg-[#b298e7] text-[#1e1830] font-semibold px-4 py-3 text-sm disabled:opacity-60"
           >
             Send
           </button>

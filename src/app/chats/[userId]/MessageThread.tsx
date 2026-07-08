@@ -111,13 +111,13 @@ export default function MessageThread({
       <div className="flex-1 overflow-y-auto space-y-2 mb-4 min-h-[300px]">
         {messages.length === 0 && (
           <div className="text-center py-6">
-            <p className="text-xs text-[#aca3bd] mb-3">
+            <p className="text-xs text-[#b6abd9] mb-3">
               No messages yet — break the ice.
             </p>
             <button
               onClick={draftIcebreaker}
               disabled={drafting}
-              className="text-xs font-semibold text-[#cf8a5e] border border-[#cf8a5e]/30 rounded-full px-4 py-2 disabled:opacity-60"
+              className="text-xs font-semibold text-[#b298e7] border border-[#b298e7]/30 rounded-full px-4 py-2 disabled:opacity-60"
             >
               {drafting ? "Thinking..." : "✨ Suggest an icebreaker"}
             </button>
@@ -128,8 +128,8 @@ export default function MessageThread({
             key={m.id}
             className={
               m.sender_id === myId
-                ? "ml-auto max-w-[80%] bg-[#cf8a5e] text-[#1a1108] rounded-2xl rounded-br-sm px-4 py-2 text-sm w-fit"
-                : "mr-auto max-w-[80%] bg-[#1f1d27] border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2 text-sm w-fit"
+                ? "ml-auto max-w-[80%] bg-[#b298e7] text-[#1e1830] rounded-2xl rounded-br-sm px-4 py-2 text-sm w-fit"
+                : "mr-auto max-w-[80%] bg-[#221f38] border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2 text-sm w-fit"
             }
           >
             {m.text}
@@ -142,23 +142,23 @@ export default function MessageThread({
         <button
           onClick={draftIcebreaker}
           disabled={drafting}
-          className="self-start text-xs font-semibold text-[#aca3bd] mb-2 disabled:opacity-60"
+          className="self-start text-xs font-semibold text-[#b6abd9] mb-2 disabled:opacity-60"
         >
           {drafting ? "Thinking..." : "✨ Draft a message with AI"}
         </button>
       )}
-      {draftError && <p className="text-xs text-[#c97b93] mb-2">{draftError}</p>}
+      {draftError && <p className="text-xs text-[#ef7fa8] mb-2">{draftError}</p>}
 
       <form onSubmit={handleSend} className="flex gap-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message..."
-          className="flex-1 rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#cf8a5e]"
+          className="flex-1 rounded-lg bg-[#221f38] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#b298e7]"
         />
         <button
           disabled={sending}
-          className="rounded-lg bg-[#cf8a5e] text-[#1a1108] font-semibold px-4 py-3 text-sm disabled:opacity-60"
+          className="rounded-lg bg-[#b298e7] text-[#1e1830] font-semibold px-4 py-3 text-sm disabled:opacity-60"
         >
           Send
         </button>

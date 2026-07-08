@@ -25,15 +25,15 @@ export default function DailyReport() {
   }, []);
 
   return (
-    <div className="rounded-2xl bg-[#1f1d27] border border-[#cf8a5e]/20 p-4">
+    <div className="rounded-2xl bg-[#221f38] border border-[#b298e7]/20 p-4">
       <div className="flex items-center justify-between mb-2">
-        <div className="text-[10px] font-bold uppercase tracking-wide text-[#cf8a5e]">
+        <div className="text-[10px] font-bold uppercase tracking-wide text-[#b298e7]">
           ✨ Aaj Ka Scene Report
         </div>
         <button
           onClick={fetchReport}
           disabled={loading}
-          className="text-[10px] text-[#aca3bd] disabled:opacity-50"
+          className="text-[10px] text-[#b6abd9] disabled:opacity-50"
         >
           {loading ? "..." : "↻ Refresh"}
         </button>

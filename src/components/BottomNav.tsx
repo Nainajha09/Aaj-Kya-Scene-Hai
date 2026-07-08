@@ -54,7 +54,7 @@ export default function BottomNav() {
   }, []);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#0c0a14] border-t border-white/5 flex z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#100e1c] border-t border-white/5 flex z-50">
       {ITEMS.map((item) => {
         const active = pathname === item.href;
         const showBadge = item.href === "/chats" && unreadCount > 0;
@@ -64,13 +64,13 @@ export default function BottomNav() {
             href={item.href}
             className={
               active
-                ? "relative flex-1 text-center py-3 text-xs font-semibold text-[#cf8a5e]"
-                : "relative flex-1 text-center py-3 text-xs font-semibold text-[#aca3bd]"
+                ? "relative flex-1 text-center py-3 text-xs font-semibold text-[#b298e7]"
+                : "relative flex-1 text-center py-3 text-xs font-semibold text-[#b6abd9]"
             }
           >
             {item.label}
             {showBadge && (
-              <span className="absolute top-1.5 right-[calc(50%-22px)] min-w-[16px] h-4 px-1 rounded-full bg-[#c97b93] text-[#1a1108] text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute top-1.5 right-[calc(50%-22px)] min-w-[16px] h-4 px-1 rounded-full bg-[#ef7fa8] text-[#1e1830] text-[9px] font-bold flex items-center justify-center">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}

@@ -71,28 +71,28 @@ export default function ProfileForm({
   return (
     <div className="space-y-4">
       {/* Avatar + level card */}
-      <div className="rounded-2xl bg-[#1f1d27] border border-white/5 p-5 text-center">
+      <div className="rounded-2xl bg-[#221f38] border border-white/5 p-5 text-center">
         <div
-          className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center text-xl font-bold text-[#1a1108]"
-          style={{ background: "linear-gradient(135deg, #cf8a5e, #b5657f)" }}
+          className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center text-xl font-bold text-[#1e1830]"
+          style={{ background: "linear-gradient(135deg, #b298e7, #f5b8d5)" }}
         >
           {initial}
         </div>
         <div className="font-bold text-lg">{form.name || "Unnamed Scene-ster"}</div>
-        <div className="text-xs text-[#aca3bd] mb-2">{form.role || "Add your role"}</div>
+        <div className="text-xs text-[#b6abd9] mb-2">{form.role || "Add your role"}</div>
         <p className="text-sm mb-4">{form.one_liner || "Your one-line vibe goes here."}</p>
 
         <div className="text-left">
           <div className="flex justify-between items-center text-xs mb-1">
-            <span className="font-bold text-[#cf8a5e]">{level.name}</span>
-            <span className="text-[#aca3bd] font-mono">{score} pts</span>
+            <span className="font-bold text-[#b298e7]">{level.name}</span>
+            <span className="text-[#b6abd9] font-mono">{score} pts</span>
           </div>
           <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
             <div
               className="h-full rounded-full"
               style={{
                 width: `${progress}%`,
-                background: "linear-gradient(90deg, #cf8a5e, #b5657f)",
+                background: "linear-gradient(90deg, #b298e7, #f5b8d5)",
               }}
             />
           </div>
@@ -102,47 +102,47 @@ export default function ProfileForm({
       {/* Edit form */}
       <form onSubmit={save} className="space-y-3">
         <div>
-          <label className="block text-xs uppercase tracking-wide text-[#aca3bd] mb-1">
+          <label className="block text-xs uppercase tracking-wide text-[#b6abd9] mb-1">
             Name
           </label>
           <input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="What do people call you?"
-            className="w-full rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#cf8a5e]"
+            className="w-full rounded-lg bg-[#221f38] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#b298e7]"
           />
         </div>
         <div>
-          <label className="block text-xs uppercase tracking-wide text-[#aca3bd] mb-1">
+          <label className="block text-xs uppercase tracking-wide text-[#b6abd9] mb-1">
             Role
           </label>
           <input
             value={form.role}
             onChange={(e) => setForm({ ...form, role: e.target.value })}
             placeholder="e.g. Growth Marketer"
-            className="w-full rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#cf8a5e]"
+            className="w-full rounded-lg bg-[#221f38] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#b298e7]"
           />
         </div>
         <div>
-          <label className="block text-xs uppercase tracking-wide text-[#aca3bd] mb-1">
+          <label className="block text-xs uppercase tracking-wide text-[#b6abd9] mb-1">
             Current obsession
           </label>
           <input
             value={form.obsession}
             onChange={(e) => setForm({ ...form, obsession: e.target.value })}
             placeholder="e.g. cold brew, F1, my side project"
-            className="w-full rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#cf8a5e]"
+            className="w-full rounded-lg bg-[#221f38] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#b298e7]"
           />
         </div>
         <div>
-          <label className="block text-xs uppercase tracking-wide text-[#aca3bd] mb-1">
+          <label className="block text-xs uppercase tracking-wide text-[#b6abd9] mb-1">
             One-line vibe
           </label>
           <input
             value={form.one_liner}
             onChange={(e) => setForm({ ...form, one_liner: e.target.value })}
             placeholder="Your one-line vibe"
-            className="w-full rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#cf8a5e]"
+            className="w-full rounded-lg bg-[#221f38] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#b298e7]"
           />
         </div>
 
@@ -150,14 +150,14 @@ export default function ProfileForm({
           type="button"
           onClick={generateBio}
           disabled={generating || !form.role.trim()}
-          className="w-full rounded-lg border border-white/10 text-[#aca3bd] font-semibold py-2.5 text-xs disabled:opacity-50"
+          className="w-full rounded-lg border border-white/10 text-[#b6abd9] font-semibold py-2.5 text-xs disabled:opacity-50"
         >
           {generating ? "Writing..." : "✨ Generate my vibe bio"}
         </button>
 
         <button
           disabled={saving}
-          className="w-full rounded-lg bg-[#cf8a5e] text-[#1a1108] font-semibold py-3 text-sm disabled:opacity-60"
+          className="w-full rounded-lg bg-[#b298e7] text-[#1e1830] font-semibold py-3 text-sm disabled:opacity-60"
         >
           {saving ? "Saving..." : saved ? "Saved ✓" : "Save profile"}
         </button>

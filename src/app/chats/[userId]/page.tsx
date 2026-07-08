@@ -48,15 +48,15 @@ export default async function ChatThreadPage({
     .is("read_at", null);
 
   return (
-    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 flex flex-col">
+    <main className="min-h-screen bg-[#15132a] text-[#f3eefb] p-6 flex flex-col">
       <div className="max-w-sm w-full mx-auto flex-1 flex flex-col">
-        <a href="/chats" className="text-xs text-[#aca3bd] mb-3">
+        <a href="/chats" className="text-xs text-[#b6abd9] mb-3">
           ← Back to Chats
         </a>
         <h1 className="text-xl font-bold mb-1">
           {otherPerson?.name || "Unknown"}
         </h1>
-        <p className="text-xs text-[#aca3bd] mb-6">{otherPerson?.role}</p>
+        <p className="text-xs text-[#b6abd9] mb-6">{otherPerson?.role}</p>
 
         <MessageThread
           myId={user.id}

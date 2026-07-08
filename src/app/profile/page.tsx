@@ -27,18 +27,18 @@ export default async function ProfilePage() {
     .is("left_at", null);
 
   return (
-    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 pb-20">
+    <main className="min-h-screen bg-[#15132a] text-[#f3eefb] p-6 pb-20">
       <div className="max-w-sm mx-auto">
         <h1 className="text-2xl font-bold mb-1">Your Scene</h1>
-        <p className="text-sm text-[#aca3bd] mb-6">{user.email}</p>
+        <p className="text-sm text-[#b6abd9] mb-6">{user.email}</p>
         <ProfileForm initialProfile={profile} />
 
-        <div className="rounded-2xl bg-[#1f1d27] border border-white/5 p-4 mt-4">
-          <div className="text-xs uppercase tracking-wide text-[#aca3bd] mb-2">
+        <div className="rounded-2xl bg-[#221f38] border border-white/5 p-4 mt-4">
+          <div className="text-xs uppercase tracking-wide text-[#b6abd9] mb-2">
             Scenes you&apos;ve joined
           </div>
           {(!joinedScenes || joinedScenes.length === 0) && (
-            <p className="text-sm text-[#aca3bd]">
+            <p className="text-sm text-[#b6abd9]">
               None yet — check Radar and join one.
             </p>
           )}

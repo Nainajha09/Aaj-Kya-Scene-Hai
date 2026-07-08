@@ -57,10 +57,10 @@ export default async function RadarPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 pb-20">
+    <main className="min-h-screen bg-[#15132a] text-[#f3eefb] p-6 pb-20">
       <div className="max-w-sm mx-auto">
         <h1 className="text-2xl font-bold mb-1">Scene Radar</h1>
-        <p className="text-sm text-[#aca3bd] mb-6">
+        <p className="text-sm text-[#b6abd9] mb-6">
           What&apos;s happening near you, right now.
         </p>
         <RadarList
