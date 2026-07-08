@@ -104,12 +104,7 @@ export default async function FeedPage() {
             {twoDegreesSuggestion.one_liner && (
               <p className="text-xs text-[#cf8a5e] mb-2">{twoDegreesSuggestion.one_liner}</p>
             )}
-            
-              href={`/chats/${twoDegreesSuggestion.id}`}
-              className="text-xs font-semibold text-[#cf8a5e]"
-            >
-              → Say hi
-            </a>
+            <a href={`/chats/${twoDegreesSuggestion.id}`} className="text-xs font-semibold text-[#cf8a5e]">→ Say hi</a>
           </div>
         )}
       </div>
