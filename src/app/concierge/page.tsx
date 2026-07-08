@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, type FormEvent } from "react";
 import BottomNav from "@/components/BottomNav";
+import TourOverlay from "@/components/TourOverlay";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -97,6 +98,7 @@ export default function ConciergePage() {
         </form>
       </div>
       <BottomNav />
+      <TourOverlay />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import BottomNav from "@/components/BottomNav";
+import TourOverlay from "@/components/TourOverlay";
 import DailyReport from "./DailyReport";
 import Avatar from "@/components/Avatar";
 import { levelFor } from "@/lib/levels";
@@ -200,6 +201,7 @@ export default async function FeedPage() {
       `}</style>
 
       <BottomNav />
+      <TourOverlay />
     </main>
   );
 }

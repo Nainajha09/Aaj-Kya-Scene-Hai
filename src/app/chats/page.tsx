@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import BottomNav from "@/components/BottomNav";
+import TourOverlay from "@/components/TourOverlay";
 import Avatar from "@/components/Avatar";
 
 export default async function ChatsPage() {
@@ -84,6 +85,7 @@ export default async function ChatsPage() {
         </div>
       </div>
       <BottomNav />
+      <TourOverlay />
     </main>
   );
 }

@@ -118,7 +118,7 @@ export default function OnboardingPage() {
       setError(saveErr.message);
       return;
     }
-    router.push("/feed");
+    router.push("/feed?tour=1");
   }
 
   function next() {

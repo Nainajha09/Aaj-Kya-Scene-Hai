@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import BottomNav from "@/components/BottomNav";
+import TourOverlay from "@/components/TourOverlay";
 
 type Section = {
   emoji: string;
@@ -155,11 +156,19 @@ export default function GuidePage() {
           })}
         </div>
 
-        <p className="text-xs text-[#b6abd9] text-center mt-6">
+        <a
+          href="/feed?tour=1"
+          className="block text-center text-xs font-semibold text-[#b298e7] mt-6"
+        >
+          🎯 Take the guided tour again
+        </a>
+
+        <p className="text-xs text-[#b6abd9] text-center mt-3">
           Still confused about something? That probably means it needs fixing, not you. 🫶
         </p>
       </div>
       <BottomNav />
+      <TourOverlay />
     </main>
   );
 }

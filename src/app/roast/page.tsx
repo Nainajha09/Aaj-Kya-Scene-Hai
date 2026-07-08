@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import BottomNav from "@/components/BottomNav";
+import TourOverlay from "@/components/TourOverlay";
 
 export default function RoastPage() {
   const [role, setRole] = useState("");
@@ -88,6 +89,7 @@ export default function RoastPage() {
         )}
       </div>
       <BottomNav />
+      <TourOverlay />
     </main>
   );
 }

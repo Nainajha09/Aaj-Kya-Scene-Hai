@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import RadarList from "./RadarList";
 import BottomNav from "@/components/BottomNav";
+import TourOverlay from "@/components/TourOverlay";
 
 export type Attendee = { name: string; role: string; avatarUrl: string | null };
 export type Scene = {
@@ -83,6 +84,7 @@ export default async function RadarPage() {
         />
       </div>
       <BottomNav />
+      <TourOverlay />
     </main>
   );
 }
