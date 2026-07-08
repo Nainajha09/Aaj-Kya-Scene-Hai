@@ -55,3 +55,44 @@ export async function leaveScene(sceneId: number) {
   revalidatePath("/radar");
   return { error: null };
 }
+
+export async function createScene(input: {
+  name: string;
+  tag: string;
+  lat: number;
+  lng: number;
+  vibe?: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not logged in" };
+
+  if (!input.name.trim()) return { error: "Give the scene a name." };
+
+  const { data: scene, error } = await supabase
+    .from("scenes")
+    .insert({
+      name: input.name.trim(),
+      tag: input.tag,
+      lat: input.lat,
+      lng: input.lng,
+      vibe: input.vibe?.trim() || null,
+      is_live: true,
+      created_by: user.id,
+    })
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+
+  // Auto check-in the creator since they're presumably right there.
+  if (scene) {
+    await supabase.from("checkins").insert({ user_id: user.id, scene_id: scene.id });
+  }
+
+  revalidatePath("/radar");
+  revalidatePath("/feed");
+  return { error: null };
+}

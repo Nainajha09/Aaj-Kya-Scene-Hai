@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { joinScene, leaveScene } from "./actions";
 import { distanceKm, etaMinutes } from "@/lib/distance";
+import { createClient } from "@/lib/supabase/client";
+import AddSceneForm from "./AddSceneForm";
 import type { Scene, Attendee } from "./page";
 
 const FILTERS = ["All", "Coworking", "Café Scene", "Founders", "Pop-up Scene", "Party"];
@@ -194,6 +197,28 @@ export default function RadarList({
   const [selected, setSelected] = useState<Scene | null>(null);
   const [pendingId, setPendingId] = useState<number | null>(null);
   const [joined, setJoined] = useState<number[]>(myCheckins);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const router = useRouter();
+
+  // Live updates: whenever anyone joins/leaves a scene or a new scene
+  // is created, refresh the server data so counts and attendees stay
+  // current without needing a manual page reload.
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel("radar-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "checkins" }, () => {
+        router.refresh();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "scenes" }, () => {
+        router.refresh();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [router]);
 
   const filtered = filter === "All" ? scenes : scenes.filter((s) => s.tag === filter);
 
@@ -211,6 +236,13 @@ export default function RadarList({
 
   return (
     <>
+      <button
+        onClick={() => setShowAddForm(true)}
+        className="w-full rounded-2xl border border-dashed border-[#cf8a5e]/40 text-[#cf8a5e] font-semibold text-sm py-3 mb-4"
+      >
+        + Start a Scene where you are
+      </button>
+
       <div className="flex gap-2 overflow-x-auto mb-4 pb-1">
         {FILTERS.map((f) => (
           <button
@@ -285,6 +317,15 @@ export default function RadarList({
           pending={pendingId === selected.id}
           onClose={() => setSelected(null)}
           onToggle={() => toggle(selected.id)}
+        />
+      )}
+
+      {showAddForm && (
+        <AddSceneForm
+          onClose={() => {
+            setShowAddForm(false);
+            router.refresh();
+          }}
         />
       )}
     </>
