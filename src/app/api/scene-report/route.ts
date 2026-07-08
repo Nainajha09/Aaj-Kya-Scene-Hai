@@ -1,9 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
-export async function POST(request: NextRequest) {
-  const { liveScenes, activeCheckins, totalUsers } = await request.json();
+export async function POST() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not logged in." }, { status: 401 });
+  }
 
-  const userPrompt = `Real current stats from the app: ${liveScenes} live scenes right now, ${activeCheckins} people currently checked into scenes, ${totalUsers} total people signed up. Write a short, punchy 2-sentence 'daily scene report' using these real numbers naturally (don't just list them like a spreadsheet). Playful Hinglish-friendly tone, no hashtags, under 40 words. If numbers are very low (like 0 or 1), acknowledge that honestly and playfully rather than pretending it's a huge scene.`;
+  // Calculated here, not trusted from the request body — otherwise
+  // anyone could pass fake numbers to manipulate the AI's output.
+  const [{ count: liveScenes }, { count: activeCheckins }, { count: totalUsers }] =
+    await Promise.all([
+      supabase.from("scenes").select("*", { count: "exact", head: true }).eq("is_live", true),
+      supabase.from("checkins").select("*", { count: "exact", head: true }).is("left_at", null),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+    ]);
+
+  const userPrompt = `Real current stats from the app: ${liveScenes ?? 0} live scenes right now, ${
+    activeCheckins ?? 0
+  } people currently checked into scenes, ${
+    totalUsers ?? 0
+  } total people signed up. Write a short, punchy 2-sentence 'daily scene report' using these real numbers naturally (don't just list them like a spreadsheet). Playful Hinglish-friendly tone, no hashtags, under 40 words. If numbers are very low (like 0 or 1), acknowledge that honestly and playfully rather than pretending it's a huge scene.`;
 
   try {
     const response = await fetch(

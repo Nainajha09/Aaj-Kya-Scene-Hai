@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not logged in." }, { status: 401 });
+  }
+
   const { role, obsession } = await request.json();
 
   if (!role?.trim()) {

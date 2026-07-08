@@ -2,26 +2,14 @@
 
 import { useState, useEffect } from "react";
 
-export default function DailyReport({
-  liveScenes,
-  activeCheckins,
-  totalUsers,
-}: {
-  liveScenes: number;
-  activeCheckins: number;
-  totalUsers: number;
-}) {
+export default function DailyReport() {
   const [report, setReport] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function fetchReport() {
     setLoading(true);
     try {
-      const res = await fetch("/api/scene-report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ liveScenes, activeCheckins, totalUsers }),
-      });
+      const res = await fetch("/api/scene-report", { method: "POST" });
       const data = await res.json();
       setReport(data.result || data.error || "Scene's quiet right now.");
     } catch {

@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 const SYSTEM_PROMPT =
   "You are 'Scene Concierge', a witty, warm AI networking assistant inside a Gen-Z/millennial office-networking app called 'Aaj Kya Scene Hai'. You help people figure out who to meet, draft icebreakers, and plan coffee chats. Keep replies short (3-5 sentences max), practical, and a little playful. Hinglish flavor is welcome but keep it readable. Never be corporate or generic.";
 
 export async function POST(request: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not logged in." }, { status: 401 });
+  }
+
   const { messages } = await request.json();
 
   if (!Array.isArray(messages) || messages.length === 0) {

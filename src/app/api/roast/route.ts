@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not logged in." }, { status: 401 });
+  }
+
   const { role, bio } = await request.json();
 
   if (!role?.trim() && !bio?.trim()) {
@@ -60,7 +69,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ result: text });
   } catch (err) {
     console.error("Unexpected error calling Groq:", err);
-
     return NextResponse.json(
       { error: "Something went wrong. Try again." },
       { status: 500 }
