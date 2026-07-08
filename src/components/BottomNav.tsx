@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 const ITEMS = [
+  { href: "/feed", label: "Scene" },
   { href: "/profile", label: "You" },
   { href: "/radar", label: "Radar" },
   { href: "/chats", label: "Chats" },
