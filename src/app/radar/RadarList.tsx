@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { joinScene, leaveScene } from "./actions";
+import { joinScene, leaveScene, updateScene, deleteScene } from "./actions";
 import { distanceKm, etaMinutes } from "@/lib/distance";
 import { createClient } from "@/lib/supabase/client";
 import AddSceneForm from "./AddSceneForm";
@@ -41,10 +41,97 @@ function AvatarStack({ attendees }: { attendees: Attendee[] }) {
   );
 }
 
+const TAGS = ["Coworking", "Café Scene", "Founders", "Pop-up Scene", "Party"];
+
+function EditSceneForm({
+  scene,
+  onCancel,
+  onSaved,
+}: {
+  scene: Scene;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
+  const [name, setName] = useState(scene.name);
+  const [tag, setTag] = useState(scene.tag);
+  const [vibe, setVibe] = useState(scene.vibe ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function save() {
+    setSaving(true);
+    setError("");
+    const result = await updateScene(scene.id, { name, tag, vibe });
+    setSaving(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    onSaved();
+  }
+
+  return (
+    <div className="mb-4">
+      <label className="block text-xs uppercase tracking-wide text-[#aca3bd] mb-1">
+        Scene name
+      </label>
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="w-full rounded-lg bg-[#29262f] border border-white/10 px-4 py-3 text-sm mb-3 outline-none focus:border-[#cf8a5e]"
+      />
+      <label className="block text-xs uppercase tracking-wide text-[#aca3bd] mb-1">
+        Type
+      </label>
+      <div className="flex flex-wrap gap-2 mb-3">
+        {TAGS.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTag(t)}
+            className={
+              tag === t
+                ? "text-xs font-semibold rounded-full px-3 py-1.5 bg-[#cf8a5e]/20 text-[#cf8a5e] border border-[#cf8a5e]/40"
+                : "text-xs font-semibold rounded-full px-3 py-1.5 bg-[#29262f] text-[#aca3bd] border border-white/10"
+            }
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+      <label className="block text-xs uppercase tracking-wide text-[#aca3bd] mb-1">
+        Vibe (optional)
+      </label>
+      <input
+        value={vibe}
+        onChange={(e) => setVibe(e.target.value)}
+        className="w-full rounded-lg bg-[#29262f] border border-white/10 px-4 py-3 text-sm mb-3 outline-none focus:border-[#cf8a5e]"
+      />
+      {error && <p className="text-sm text-[#c97b93] mb-2">{error}</p>}
+      <div className="flex gap-2">
+        <button
+          onClick={onCancel}
+          className="flex-1 rounded-lg border border-white/10 text-[#aca3bd] font-semibold py-2.5 text-sm"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="flex-1 rounded-lg bg-[#cf8a5e] text-[#1a1108] font-semibold py-2.5 text-sm disabled:opacity-60"
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function DetailSheet({
   scene,
   attendees,
   isJoined,
+  isOwner,
   onClose,
   onToggle,
   pending,
@@ -52,6 +139,7 @@ function DetailSheet({
   scene: Scene;
   attendees: Attendee[];
   isJoined: boolean;
+  isOwner: boolean;
   onClose: () => void;
   onToggle: () => void;
   pending: boolean;
@@ -59,6 +147,8 @@ function DetailSheet({
   const [travelMode, setTravelMode] = useState<"walk" | "auto">("walk");
   const [distance, setDistance] = useState<number | null>(null);
   const [locationDenied, setLocationDenied] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!("geolocation" in navigator)) {
@@ -80,103 +170,140 @@ function DetailSheet({
     );
   }, [scene.lat, scene.lng]);
 
+  async function handleDelete() {
+    if (!confirm(`Delete "${scene.name}"? This can't be undone.`)) return;
+    setDeleting(true);
+    await deleteScene(scene.id);
+    setDeleting(false);
+    onClose();
+  }
+
   return (
-    <div
-      className="fixed inset-0 bg-black/70 z-[60] flex items-end"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 bg-black/70 z-[60] flex items-end" onClick={onClose}>
       <div
         className="bg-[#1f1d27] w-full max-w-sm mx-auto rounded-t-2xl p-5 max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mb-4" />
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <div className="font-bold text-lg">{scene.name}</div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-bold uppercase text-[#aca3bd]">
-                {scene.tag}
-              </span>
-              {scene.is_live && (
-                <span className="text-[10px] font-mono text-[#9cbf7a]">● LIVE</span>
-              )}
-            </div>
-          </div>
-          <button onClick={onClose} className="text-[#aca3bd] text-sm">
-            ✕
-          </button>
-        </div>
 
-        {scene.vibe && (
-          <div className="text-xs text-[#cf8a5e] bg-[#cf8a5e]/10 rounded-lg px-2 py-1 mb-3 inline-block">
-            🎉 {scene.vibe}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex bg-[#29262f] rounded-lg p-1">
-            <button
-              onClick={() => setTravelMode("walk")}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-md ${
-                travelMode === "walk" ? "bg-[#cf8a5e] text-[#1a1108]" : "text-[#aca3bd]"
-              }`}
-            >
-              🚶 Walk
-            </button>
-            <button
-              onClick={() => setTravelMode("auto")}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-md ${
-                travelMode === "auto" ? "bg-[#cf8a5e] text-[#1a1108]" : "text-[#aca3bd]"
-              }`}
-            >
-              🚗 Auto
-            </button>
-          </div>
-          <div className="text-xs font-mono text-[#9cbf7a] bg-[#9cbf7a]/10 rounded-full px-3 py-1.5">
-            {locationDenied
-              ? "Enable location for ETA"
-              : distance === null
-              ? "Locating..."
-              : `${etaMinutes(distance, travelMode)} min · ${distance.toFixed(1)} km`}
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <div className="text-xs uppercase tracking-wide text-[#aca3bd] mb-2">
-            Who&apos;s there · {attendees.length}
-          </div>
-          {attendees.length === 0 && (
-            <p className="text-sm text-[#aca3bd]">No one checked in yet — be the first.</p>
-          )}
-          <div className="space-y-2">
-            {attendees.map((a, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-extrabold text-[#1a1108]"
-                  style={{ background: "linear-gradient(135deg, #cf8a5e, #b5657f)" }}
-                >
-                  {initials(a.name)}
-                </div>
-                <div>
-                  <div className="text-sm font-semibold">{a.name}</div>
-                  <div className="text-xs text-[#aca3bd]">{a.role}</div>
+        {editing ? (
+          <EditSceneForm
+            scene={scene}
+            onCancel={() => setEditing(false)}
+            onSaved={() => {
+              setEditing(false);
+              onClose();
+            }}
+          />
+        ) : (
+          <>
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <div className="font-bold text-lg">{scene.name}</div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] font-bold uppercase text-[#aca3bd]">
+                    {scene.tag}
+                  </span>
+                  {scene.is_live && (
+                    <span className="text-[10px] font-mono text-[#9cbf7a]">● LIVE</span>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+              <button onClick={onClose} className="text-[#aca3bd] text-sm">
+                ✕
+              </button>
+            </div>
 
-        <button
-          onClick={onToggle}
-          disabled={pending}
-          className={
-            isJoined
-              ? "w-full rounded-lg bg-[#29262f] text-[#9cbf7a] font-semibold py-3 text-sm disabled:opacity-60"
-              : "w-full rounded-lg bg-[#cf8a5e] text-[#1a1108] font-semibold py-3 text-sm disabled:opacity-60"
-          }
-        >
-          {pending ? "..." : isJoined ? "✓ You're in — leave scene" : "Join scene"}
-        </button>
+            {isOwner && (
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => setEditing(true)}
+                  className="text-xs font-semibold text-[#aca3bd] border border-white/10 rounded-lg px-3 py-1.5"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="text-xs font-semibold text-[#c97b93] border border-[#c97b93]/30 rounded-lg px-3 py-1.5 disabled:opacity-60"
+                >
+                  {deleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            )}
+
+            {scene.vibe && (
+              <div className="text-xs text-[#cf8a5e] bg-[#cf8a5e]/10 rounded-lg px-2 py-1 mb-3 inline-block">
+                🎉 {scene.vibe}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex bg-[#29262f] rounded-lg p-1">
+                <button
+                  onClick={() => setTravelMode("walk")}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-md ${
+                    travelMode === "walk" ? "bg-[#cf8a5e] text-[#1a1108]" : "text-[#aca3bd]"
+                  }`}
+                >
+                  🚶 Walk
+                </button>
+                <button
+                  onClick={() => setTravelMode("auto")}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-md ${
+                    travelMode === "auto" ? "bg-[#cf8a5e] text-[#1a1108]" : "text-[#aca3bd]"
+                  }`}
+                >
+                  🚗 Auto
+                </button>
+              </div>
+              <div className="text-xs font-mono text-[#9cbf7a] bg-[#9cbf7a]/10 rounded-full px-3 py-1.5">
+                {locationDenied
+                  ? "Enable location for ETA"
+                  : distance === null
+                  ? "Locating..."
+                  : `${etaMinutes(distance, travelMode)} min · ${distance.toFixed(1)} km`}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <div className="text-xs uppercase tracking-wide text-[#aca3bd] mb-2">
+                Who&apos;s there · {attendees.length}
+              </div>
+              {attendees.length === 0 && (
+                <p className="text-sm text-[#aca3bd]">No one checked in yet — be the first.</p>
+              )}
+              <div className="space-y-2">
+                {attendees.map((a, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-extrabold text-[#1a1108]"
+                      style={{ background: "linear-gradient(135deg, #cf8a5e, #b5657f)" }}
+                    >
+                      {initials(a.name)}
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold">{a.name}</div>
+                      <div className="text-xs text-[#aca3bd]">{a.role}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={onToggle}
+              disabled={pending}
+              className={
+                isJoined
+                  ? "w-full rounded-lg bg-[#29262f] text-[#9cbf7a] font-semibold py-3 text-sm disabled:opacity-60"
+                  : "w-full rounded-lg bg-[#cf8a5e] text-[#1a1108] font-semibold py-3 text-sm disabled:opacity-60"
+              }
+            >
+              {pending ? "..." : isJoined ? "✓ You're in — leave scene" : "Join scene"}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -187,11 +314,13 @@ export default function RadarList({
   countByScene,
   attendeesByScene,
   myCheckins,
+  currentUserId,
 }: {
   scenes: Scene[];
   countByScene: Record<number, number>;
   attendeesByScene: Record<number, Attendee[]>;
   myCheckins: number[];
+  currentUserId: string;
 }) {
   const [filter, setFilter] = useState("All");
   const [selected, setSelected] = useState<Scene | null>(null);
@@ -199,6 +328,15 @@ export default function RadarList({
   const [joined, setJoined] = useState<number[]>(myCheckins);
   const [showAddForm, setShowAddForm] = useState(false);
   const router = useRouter();
+
+  // Keep "joined" in sync with the server. Without this, creating a
+  // scene (which auto-checks you in server-side) or any other change
+  // that refreshes the page wouldn't be reflected here, since this
+  // state only initializes once on first render otherwise.
+  useEffect(() => {
+    setJoined(myCheckins);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myCheckins.join(",")]);
 
   // Live updates: whenever anyone joins/leaves a scene or a new scene
   // is created, refresh the server data so counts and attendees stay
@@ -314,6 +452,7 @@ export default function RadarList({
           scene={selected}
           attendees={attendeesByScene[selected.id] ?? []}
           isJoined={joined.includes(selected.id)}
+          isOwner={selected.created_by === currentUserId}
           pending={pendingId === selected.id}
           onClose={() => setSelected(null)}
           onToggle={() => toggle(selected.id)}

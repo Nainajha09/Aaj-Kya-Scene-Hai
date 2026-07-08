@@ -96,3 +96,67 @@ export async function createScene(input: {
   revalidatePath("/feed");
   return { error: null };
 }
+
+export async function updateScene(
+  sceneId: number,
+  input: { name: string; tag: string; vibe?: string }
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not logged in" };
+
+  if (!input.name.trim()) return { error: "Give the scene a name." };
+
+  // RLS also enforces this, but checking here gives a clearer error
+  // message than a silent no-op update.
+  const { data: scene } = await supabase
+    .from("scenes")
+    .select("created_by")
+    .eq("id", sceneId)
+    .single();
+
+  if (!scene || scene.created_by !== user.id) {
+    return { error: "You can only edit scenes you created." };
+  }
+
+  const { error } = await supabase
+    .from("scenes")
+    .update({
+      name: input.name.trim(),
+      tag: input.tag,
+      vibe: input.vibe?.trim() || null,
+    })
+    .eq("id", sceneId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/radar");
+  revalidatePath("/feed");
+  return { error: null };
+}
+
+export async function deleteScene(sceneId: number) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not logged in" };
+
+  const { data: scene } = await supabase
+    .from("scenes")
+    .select("created_by")
+    .eq("id", sceneId)
+    .single();
+
+  if (!scene || scene.created_by !== user.id) {
+    return { error: "You can only delete scenes you created." };
+  }
+
+  const { error } = await supabase.from("scenes").delete().eq("id", sceneId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/radar");
+  revalidatePath("/feed");
+  return { error: null };
+}

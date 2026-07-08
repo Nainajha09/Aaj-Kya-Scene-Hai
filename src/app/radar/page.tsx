@@ -12,6 +12,7 @@ export type Scene = {
   lng: number;
   vibe: string | null;
   is_live: boolean;
+  created_by: string | null;
 };
 
 export default async function RadarPage() {
@@ -67,6 +68,7 @@ export default async function RadarPage() {
           countByScene={countByScene}
           attendeesByScene={attendeesByScene}
           myCheckins={myCheckins}
+          currentUserId={user.id}
         />
       </div>
       <BottomNav />
