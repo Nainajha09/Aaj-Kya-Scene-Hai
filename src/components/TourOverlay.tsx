@@ -27,7 +27,9 @@ function TourOverlayInner() {
     if (nextStep) {
       router.push(`${nextStep.path}?tour=1`);
     } else {
-      endTour();
+      // Tour finished — land back on Scene instead of just staying
+      // on whatever page the last step happened to be.
+      router.push("/feed");
     }
   }
 
