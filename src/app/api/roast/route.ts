@@ -19,20 +19,27 @@ export async function POST(request: NextRequest) {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ parts: [{ text: userPrompt }] }],
+          model: "llama-3.3-70b-versatile",
+          max_tokens: 500,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
         }),
       }
     );
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Gemini API error:", errText);
+      console.error("Groq API error:", errText);
       return NextResponse.json(
         { error: "The roast machine short-circuited. Try again." },
         { status: 500 }
@@ -40,10 +47,10 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const text = data.choices?.[0]?.message?.content ?? "";
 
     if (!text) {
-      console.error("Gemini returned no text:", JSON.stringify(data));
+      console.error("Groq returned no text:", JSON.stringify(data));
       return NextResponse.json(
         { error: "The roast machine had nothing to say. Try again." },
         { status: 500 }
@@ -52,7 +59,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ result: text });
   } catch (err) {
-    console.error("Unexpected error calling Gemini:", err);
+    console.error("Unexpected error calling Groq:", err);
+
     return NextResponse.json(
       { error: "Something went wrong. Try again." },
       { status: 500 }
