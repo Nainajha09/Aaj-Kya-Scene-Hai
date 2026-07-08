@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const ITEMS = [
-  { href: "/feed", label: "Scene" },
   { href: "/profile", label: "You" },
+  { href: "/feed", label: "Scene" },
   { href: "/radar", label: "Radar" },
   { href: "/chats", label: "Chats" },
   { href: "/concierge", label: "AI" },
