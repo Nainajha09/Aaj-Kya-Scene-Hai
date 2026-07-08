@@ -20,8 +20,14 @@ export default async function ChatThreadPage({
 
   const { data: otherPerson } = await supabase
     .from("profiles")
-    .select("id, name, role")
+    .select("id, name, role, one_liner, obsession")
     .eq("id", userId)
+    .single();
+
+  const { data: myProfile } = await supabase
+    .from("profiles")
+    .select("role, obsession")
+    .eq("id", user.id)
     .single();
 
   const { data: messages } = await supabase
@@ -56,6 +62,16 @@ export default async function ChatThreadPage({
           myId={user.id}
           otherId={userId}
           initialMessages={messages ?? []}
+          otherProfile={{
+            name: otherPerson?.name ?? "",
+            role: otherPerson?.role ?? "",
+            oneLiner: otherPerson?.one_liner ?? "",
+            obsession: otherPerson?.obsession ?? "",
+          }}
+          myProfile={{
+            role: myProfile?.role ?? "",
+            obsession: myProfile?.obsession ?? "",
+          }}
         />
       </div>
     </main>

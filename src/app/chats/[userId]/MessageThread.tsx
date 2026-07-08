@@ -12,18 +12,27 @@ type Message = {
   created_at: string;
 };
 
+type Profile = { role: string; obsession: string };
+type OtherProfile = Profile & { name: string; oneLiner: string };
+
 export default function MessageThread({
   myId,
   otherId,
   initialMessages,
+  otherProfile,
+  myProfile,
 }: {
   myId: string;
   otherId: string;
   initialMessages: Message[];
+  otherProfile: OtherProfile;
+  myProfile: Profile;
 }) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+  const [draftError, setDraftError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -68,11 +77,51 @@ export default function MessageThread({
     setSending(false);
   }
 
+  async function draftIcebreaker() {
+    setDrafting(true);
+    setDraftError("");
+    try {
+      const res = await fetch("/api/icebreaker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          otherName: otherProfile.name,
+          otherRole: otherProfile.role,
+          otherOneLiner: otherProfile.oneLiner,
+          otherObsession: otherProfile.obsession,
+          myRole: myProfile.role,
+          myObsession: myProfile.obsession,
+        }),
+      });
+      const data = await res.json();
+      if (data.result) {
+        setInput(data.result);
+      } else {
+        setDraftError(data.error || "Couldn't draft anything. Try again.");
+      }
+    } catch {
+      setDraftError("Something went wrong. Try again.");
+    } finally {
+      setDrafting(false);
+    }
+  }
+
   return (
     <>
       <div className="flex-1 overflow-y-auto space-y-2 mb-4 min-h-[300px]">
         {messages.length === 0 && (
-          <p className="text-xs text-[#aca3bd]">Say hi 👋</p>
+          <div className="text-center py-6">
+            <p className="text-xs text-[#aca3bd] mb-3">
+              No messages yet — break the ice.
+            </p>
+            <button
+              onClick={draftIcebreaker}
+              disabled={drafting}
+              className="text-xs font-semibold text-[#cf8a5e] border border-[#cf8a5e]/30 rounded-full px-4 py-2 disabled:opacity-60"
+            >
+              {drafting ? "Thinking..." : "✨ Suggest an icebreaker"}
+            </button>
+          </div>
         )}
         {messages.map((m) => (
           <div
@@ -88,6 +137,18 @@ export default function MessageThread({
         ))}
         <div ref={bottomRef} />
       </div>
+
+      {messages.length > 0 && (
+        <button
+          onClick={draftIcebreaker}
+          disabled={drafting}
+          className="self-start text-xs font-semibold text-[#aca3bd] mb-2 disabled:opacity-60"
+        >
+          {drafting ? "Thinking..." : "✨ Draft a message with AI"}
+        </button>
+      )}
+      {draftError && <p className="text-xs text-[#c97b93] mb-2">{draftError}</p>}
+
       <form onSubmit={handleSend} className="flex gap-2">
         <input
           value={input}
