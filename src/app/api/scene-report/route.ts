@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { checkAndRecordUsage } from "@/lib/rateLimit";
 
 export async function POST() {
   const supabase = await createClient();
@@ -8,6 +9,14 @@ export async function POST() {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Not logged in." }, { status: 401 });
+  }
+
+  const allowed = await checkAndRecordUsage(supabase, user.id, "scene-report", 20, 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "You've hit the hourly limit for refreshing the report." },
+      { status: 429 }
+    );
   }
 
   // Calculated here, not trusted from the request body — otherwise

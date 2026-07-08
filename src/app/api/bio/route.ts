@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { checkAndRecordUsage } from "@/lib/rateLimit";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -8,6 +9,14 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Not logged in." }, { status: 401 });
+  }
+
+  const allowed = await checkAndRecordUsage(supabase, user.id, "bio", 10, 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "You've hit the hourly limit for bio generation. Try again in a bit." },
+      { status: 429 }
+    );
   }
 
   const { role, obsession } = await request.json();
