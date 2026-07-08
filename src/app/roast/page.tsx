@@ -1,0 +1,91 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+
+export default function RoastPage() {
+  const [role, setRole] = useState("");
+  const [bio, setBio] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function roast(e: FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setResult(null);
+    try {
+      const res = await fetch("/api/roast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, bio }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Something went wrong.");
+        return;
+      }
+      setResult(data.result);
+    } catch {
+      setError("Couldn't reach the roast machine. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6">
+      <div className="max-w-sm mx-auto">
+        <a href="/profile" className="text-xs text-[#aca3bd] mb-3 inline-block">
+          ← Back to Profile
+        </a>
+        <h1 className="text-2xl font-bold mb-1">🔥 Roast My Career</h1>
+        <p className="text-sm text-[#aca3bd] mb-6">
+          Brutally honest. Weirdly useful. Screenshot-worthy.
+        </p>
+
+        <form onSubmit={roast} className="space-y-3 mb-6">
+          <div>
+            <label className="block text-xs uppercase tracking-wide text-[#aca3bd] mb-1">
+              Current role
+            </label>
+            <input
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              placeholder="e.g. Product Manager, 2nd job"
+              className="w-full rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#cf8a5e]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-wide text-[#aca3bd] mb-1">
+              Your career so far, in a few lines
+            </label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows={4}
+              placeholder="e.g. Switched from marketing to product, still finishing an MBA I started 3 years ago..."
+              className="w-full rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#cf8a5e] resize-y"
+            />
+          </div>
+          <button
+            disabled={loading}
+            className="w-full rounded-lg bg-[#cf8a5e] text-[#1a1108] font-semibold py-3 text-sm disabled:opacity-60"
+          >
+            {loading ? "Roasting..." : "Roast me 🔥"}
+          </button>
+        </form>
+
+        {error && <p className="text-sm text-[#c97b93] mb-4">{error}</p>}
+
+        {result && (
+          <div className="rounded-2xl bg-[#1f1d27] border border-[#cf8a5e]/30 p-4">
+            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+              {result}
+            </pre>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
