@@ -56,7 +56,7 @@ function BottomNavInner() {
   }, []);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#100e1c] border-t border-white/5 flex z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#100e1c] border-t border-[#b298e7]/15 shadow-[0_-8px_24px_rgba(0,0,0,0.35)] flex z-50 px-1.5 py-1.5 gap-1">
       {ITEMS.map((item) => {
         const active = pathname === item.href;
         const showBadge = item.href === "/chats" && unreadCount > 0;
@@ -65,23 +65,24 @@ function BottomNavInner() {
           <a
             key={item.href}
             href={item.href}
-            className={
-              active
-                ? "relative flex-1 text-center py-3 text-xs font-semibold text-[#b298e7]"
-                : "relative flex-1 text-center py-3 text-xs font-semibold text-[#b6abd9]"
-            }
+            className="relative flex-1 flex flex-col items-center justify-center py-2 rounded-xl"
           >
             <span
               className={
-                isHighlighted
-                  ? "inline-block px-2 py-1 rounded-lg animate-pulse bg-[#b298e7]/20 ring-2 ring-[#b298e7]"
-                  : ""
+                active
+                  ? "px-3 py-1.5 rounded-full bg-[#b298e7]/20 text-[#b298e7] text-xs font-bold"
+                  : isHighlighted
+                  ? "px-3 py-1.5 rounded-full animate-pulse bg-[#b298e7]/20 ring-2 ring-[#b298e7] text-[#b298e7] text-xs font-bold"
+                  : "px-3 py-1.5 rounded-full text-[#b6abd9] text-xs font-semibold"
               }
             >
               {item.label}
             </span>
+            {active && (
+              <span className="w-1 h-1 rounded-full bg-[#b298e7] mt-0.5" />
+            )}
             {showBadge && (
-              <span className="absolute top-1.5 right-[calc(50%-22px)] min-w-[16px] h-4 px-1 rounded-full bg-[#ef7fa8] text-[#1e1830] text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute top-0 right-[calc(50%-26px)] min-w-[16px] h-4 px-1 rounded-full bg-[#ef7fa8] text-[#1e1830] text-[9px] font-bold flex items-center justify-center">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
