@@ -41,7 +41,7 @@ export default function LoginPage() {
         setError(result.error);
         return;
       }
-      router.push("/profile");
+      router.push("/onboarding");
       router.refresh();
     } catch (err) {
       console.error("Unexpected error:", err);
