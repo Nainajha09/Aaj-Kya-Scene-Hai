@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import BottomNav from "@/components/BottomNav";
 
 export default async function ChatsPage() {
   const supabase = await createClient();
@@ -21,7 +22,7 @@ export default async function ChatsPage() {
     .neq("id", user.id);
 
   return (
-    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6">
+    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 pb-20">
       <div className="max-w-sm mx-auto">
         <h1 className="text-2xl font-bold mb-1">Chats</h1>
         <p className="text-sm text-[#aca3bd] mb-6">
@@ -56,6 +57,7 @@ export default async function ChatsPage() {
           ))}
         </div>
       </div>
+      <BottomNav />
     </main>
   );
 }

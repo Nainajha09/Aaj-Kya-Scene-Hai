@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import RadarList from "./RadarList";
+import BottomNav from "@/components/BottomNav";
 
 export default async function RadarPage() {
   const supabase = await createClient();
@@ -33,7 +34,7 @@ export default async function RadarPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6">
+    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 pb-20">
       <div className="max-w-sm mx-auto">
         <h1 className="text-2xl font-bold mb-1">Scene Radar</h1>
         <p className="text-sm text-[#aca3bd] mb-6">
@@ -45,6 +46,7 @@ export default async function RadarPage() {
           myCheckins={myCheckins}
         />
       </div>
+      <BottomNav />
     </main>
   );
 }

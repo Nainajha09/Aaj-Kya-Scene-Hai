@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileForm from "./ProfileForm";
+import BottomNav from "@/components/BottomNav";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -20,23 +21,13 @@ export default async function ProfilePage() {
     .single();
 
   return (
-    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6">
+    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 pb-20">
       <div className="max-w-sm mx-auto">
         <h1 className="text-2xl font-bold mb-1">Your Scene</h1>
         <p className="text-sm text-[#aca3bd] mb-6">{user.email}</p>
-        <div className="flex flex-wrap gap-4 mb-4">
-          <a href="/radar" className="text-xs font-semibold text-[#cf8a5e]">
-            → Scene Radar
-          </a>
-          <a href="/chats" className="text-xs font-semibold text-[#cf8a5e]">
-            → Chats
-          </a>
-          <a href="/roast" className="text-xs font-semibold text-[#cf8a5e]">
-            → Roast My Career
-          </a>
-        </div>
         <ProfileForm initialProfile={profile} />
       </div>
+      <BottomNav />
     </main>
   );
 }

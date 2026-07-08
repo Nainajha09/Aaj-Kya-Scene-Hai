@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import BottomNav from "@/components/BottomNav";
 
 export default function RoastPage() {
   const [role, setRole] = useState("");
@@ -34,7 +35,7 @@ export default function RoastPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6">
+    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 pb-20">
       <div className="max-w-sm mx-auto">
         <a href="/profile" className="text-xs text-[#aca3bd] mb-3 inline-block">
           ← Back to Profile
@@ -86,6 +87,7 @@ export default function RoastPage() {
           </div>
         )}
       </div>
+      <BottomNav />
     </main>
   );
 }
