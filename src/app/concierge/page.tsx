@@ -1,108 +1,102 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { checkAndRecordUsage } from "@/lib/rateLimit";
+"use client";
 
-export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not logged in." }, { status: 401 });
-  }
+import { useState, useEffect, useRef, type FormEvent } from "react";
+import BottomNav from "@/components/BottomNav";
 
-  const allowed = await checkAndRecordUsage(supabase, user.id, "concierge", 30, 60);
-  if (!allowed) {
-    return NextResponse.json(
-      { error: "You've hit the hourly limit for chatting with me. Try again in a bit." },
-      { status: 429 }
-    );
-  }
+type Msg = { role: "user" | "assistant"; content: string };
 
-  const { messages } = await request.json();
-
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return NextResponse.json({ error: "No message provided." }, { status: 400 });
-  }
-
-  // Pull real people and real live scenes so the AI can make specific,
-  // grounded recommendations instead of generic advice. Capped at 25/15
-  // rows so the context stays small and cheap even as the app grows.
-  const [{ data: people }, { data: scenes }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("id, name, role, obsession, one_liner")
-      .neq("id", user.id)
-      .limit(25),
-    supabase
-      .from("scenes")
-      .select("id, name, tag, vibe")
-      .eq("is_live", true)
-      .limit(15),
+export default function ConciergePage() {
+  const [messages, setMessages] = useState<Msg[]>([
+    {
+      role: "assistant",
+      content:
+        "Heyyy 👋 I'm your Scene Concierge. Tell me a goal — like 'meet fintech PMs' or 'find a design mentor' — and I'll help you work the room.",
+    },
   ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const peopleList =
-    (people ?? [])
-      .map(
-        (p) =>
-          `- ${p.name || "Unnamed"} (id: ${p.id}) — role: ${p.role || "unknown"}, into: ${
-            p.obsession || "unknown"
-          }, bio: ${p.one_liner || "none"}`
-      )
-      .join("\n") || "No one else has signed up yet.";
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
-  const sceneList =
-    (scenes ?? [])
-      .map((s) => `- ${s.name} (${s.tag})${s.vibe ? ` — ${s.vibe}` : ""}`)
-      .join("\n") || "No live scenes right now.";
-
-  const SYSTEM_PROMPT = `You are 'Scene Concierge', a witty, warm AI networking assistant inside a Gen-Z/millennial office-networking app called 'Aaj Kya Scene Hai'. You help people figure out who to meet, draft icebreakers, and plan coffee chats. Keep replies short (3-5 sentences max), practical, and a little playful. Hinglish flavor is welcome but keep it readable. Never be corporate or generic.
-
-You have access to REAL current data about this app — use it to make specific recommendations instead of generic ones. Only reference people and scenes from the lists below; never invent names or scenes that aren't listed. If someone asks about something not covered by this data, say so honestly instead of making it up.
-
-PEOPLE CURRENTLY ON THE APP:
-${peopleList}
-
-LIVE SCENES RIGHT NOW:
-${sceneList}
-
-When you recommend a specific person, mention their real name so the user can find them in Chats. You cannot send messages on the user's behalf — only suggest who to talk to and what to say.`;
-
-  try {
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
+  async function send(e: FormEvent) {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+    const next = [...messages, { role: "user" as const, content: input.trim() }];
+    setMessages(next);
+    setInput("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/concierge", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          max_tokens: 350,
-          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Groq API error:", errText);
-      return NextResponse.json(
-        { error: "Signal dropped for a sec — try that again?" },
-        { status: 500 }
-      );
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next }),
+      });
+      const data = await res.json();
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: data.result || data.error || "..." },
+      ]);
+    } catch {
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: "Signal dropped for a sec — try again?" },
+      ]);
+    } finally {
+      setLoading(false);
     }
-
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content ?? "";
-
-    return NextResponse.json({ result: text });
-  } catch (err) {
-    console.error("Unexpected error calling Groq:", err);
-    return NextResponse.json(
-      { error: "Something went wrong. Try again." },
-      { status: 500 }
-    );
   }
+
+  return (
+    <main className="min-h-screen bg-[#16151d] text-[#efe9dd] p-6 pb-20 flex flex-col">
+      <div className="max-w-sm w-full mx-auto flex-1 flex flex-col">
+        <a href="/profile" className="text-xs text-[#aca3bd] mb-3">
+          ← Back to Profile
+        </a>
+        <h1 className="text-2xl font-bold mb-1">Scene Concierge</h1>
+        <p className="text-sm text-[#aca3bd] mb-6">
+          Your AI wingman for actually meeting people.
+        </p>
+
+        <div className="flex-1 overflow-y-auto space-y-2 mb-4 min-h-[300px]">
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              className={
+                m.role === "user"
+                  ? "ml-auto max-w-[85%] bg-[#cf8a5e] text-[#1a1108] rounded-2xl rounded-br-sm px-4 py-2 text-sm w-fit"
+                  : "mr-auto max-w-[85%] bg-[#1f1d27] border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2 text-sm w-fit"
+              }
+            >
+              {m.content}
+            </div>
+          ))}
+          {loading && (
+            <div className="mr-auto max-w-[85%] bg-[#1f1d27] border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2 text-sm w-fit text-[#aca3bd]">
+              thinking...
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        <form onSubmit={send} className="flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="e.g. I want to meet early-stage founders"
+            className="flex-1 rounded-lg bg-[#1f1d27] border border-white/10 px-4 py-3 text-sm outline-none focus:border-[#cf8a5e]"
+          />
+          <button
+            disabled={loading}
+            className="rounded-lg bg-[#cf8a5e] text-[#1a1108] font-semibold px-4 py-3 text-sm disabled:opacity-60"
+          >
+            Send
+          </button>
+        </form>
+      </div>
+      <BottomNav />
+    </main>
+  );
 }
