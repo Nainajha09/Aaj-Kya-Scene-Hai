@@ -26,9 +26,6 @@ export default async function FeedPage() {
 
   const [
     { data: recentCheckins },
-    { count: liveScenesCount },
-    { count: activeCheckinsCount },
-    { count: totalUsers },
     { data: popupScenes },
     { data: otherProfiles },
   ] = await Promise.all([
@@ -37,9 +34,6 @@ export default async function FeedPage() {
       .select("joined_at, profiles(name), scenes(name)")
       .order("joined_at", { ascending: false })
       .limit(10),
-    supabase.from("scenes").select("*", { count: "exact", head: true }).eq("is_live", true),
-    supabase.from("checkins").select("*", { count: "exact", head: true }).is("left_at", null),
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase
       .from("scenes")
       .select("*")
@@ -86,11 +80,7 @@ export default async function FeedPage() {
         <h1 className="text-2xl font-bold mb-1">Aaj Kya Scene Hai</h1>
         <p className="text-sm text-[#aca3bd] mb-6">What&apos;s happening right now.</p>
 
-        <DailyReport
-          liveScenes={liveScenesCount ?? 0}
-          activeCheckins={activeCheckinsCount ?? 0}
-          totalUsers={totalUsers ?? 0}
-        />
+        <DailyReport />
 
         {popupScenes && popupScenes.length > 0 && (
           <div className="rounded-2xl bg-[#1f1d27] border border-white/5 p-4 mt-3">
@@ -114,7 +104,7 @@ export default async function FeedPage() {
             {twoDegreesSuggestion.one_liner && (
               <p className="text-xs text-[#cf8a5e] mb-2">{twoDegreesSuggestion.one_liner}</p>
             )}
-            <a
+            
               href={`/chats/${twoDegreesSuggestion.id}`}
               className="text-xs font-semibold text-[#cf8a5e]"
             >
