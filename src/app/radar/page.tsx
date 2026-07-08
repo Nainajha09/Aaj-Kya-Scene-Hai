@@ -13,7 +13,10 @@ export type Scene = {
   vibe: string | null;
   is_live: boolean;
   created_by: string | null;
+  starts_at: string;
+  ends_at: string | null;
 };
+export type InvitablePerson = { id: string; name: string };
 
 export default async function RadarPage() {
   const supabase = await createClient();
@@ -26,17 +29,20 @@ export default async function RadarPage() {
     redirect("/login");
   }
 
-  const { data: scenes } = await supabase
-    .from("scenes")
-    .select("*")
-    .order("id");
+  const nowIso = new Date().toISOString();
 
-  // Real attendee data — joins checkins to profiles, so the people
-  // shown are whoever has actually checked into that scene.
-  const { data: activeCheckins } = await supabase
-    .from("checkins")
-    .select("scene_id, user_id, profiles(name, role)")
-    .is("left_at", null);
+  const [{ data: scenes }, { data: activeCheckins }, { data: people }] = await Promise.all([
+    supabase
+      .from("scenes")
+      .select("*")
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+      .order("starts_at", { ascending: true }),
+    supabase
+      .from("checkins")
+      .select("scene_id, user_id, profiles(name, role)")
+      .is("left_at", null),
+    supabase.from("profiles").select("id, name").neq("id", user.id),
+  ]);
 
   const myCheckins = (activeCheckins ?? [])
     .filter((c) => c.user_id === user.id)
@@ -69,6 +75,7 @@ export default async function RadarPage() {
           attendeesByScene={attendeesByScene}
           myCheckins={myCheckins}
           currentUserId={user.id}
+          invitablePeople={(people as InvitablePerson[]) ?? []}
         />
       </div>
       <BottomNav />

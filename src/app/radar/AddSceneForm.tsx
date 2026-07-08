@@ -7,6 +7,13 @@ const TAGS = ["Coworking", "Café Scene", "Founders", "Pop-up Scene", "Party"];
 
 type VenueResult = { name: string; lat: number; lng: number };
 
+function toLocalInputValue(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}`;
+}
+
 export default function AddSceneForm({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [tag, setTag] = useState(TAGS[0]);
@@ -21,6 +28,13 @@ export default function AddSceneForm({ onClose }: { onClose: () => void }) {
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<VenueResult[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<VenueResult | null>(null);
+
+  const [whenMode, setWhenMode] = useState<"now" | "schedule">("now");
+  const [startsAtLocal, setStartsAtLocal] = useState(toLocalInputValue(new Date()));
+  const [hasEndTime, setHasEndTime] = useState(false);
+  const [endsAtLocal, setEndsAtLocal] = useState(
+    toLocalInputValue(new Date(Date.now() + 2 * 60 * 60 * 1000))
+  );
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -65,7 +79,6 @@ export default function AddSceneForm({ onClose }: { onClose: () => void }) {
     setSelectedVenue(v);
     setResults([]);
     if (!name.trim()) {
-      // Prefill the scene name from the first part of the venue's address.
       setName(v.name.split(",")[0]);
     }
   }
@@ -93,6 +106,9 @@ export default function AddSceneForm({ onClose }: { onClose: () => void }) {
       lat: activeCoords.lat,
       lng: activeCoords.lng,
       vibe: vibe || undefined,
+      startsAt:
+        whenMode === "schedule" ? new Date(startsAtLocal).toISOString() : undefined,
+      endsAt: hasEndTime ? new Date(endsAtLocal).toISOString() : undefined,
     });
     setSubmitting(false);
     if (result.error) {
@@ -111,7 +127,7 @@ export default function AddSceneForm({ onClose }: { onClose: () => void }) {
         <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mb-4" />
         <h2 className="font-bold text-lg mb-1">Start a Scene</h2>
         <p className="text-xs text-[#b6abd9] mb-4">
-          Tell people what's happening and where.
+          Tell people what's happening, when, and where.
         </p>
 
         <label className="block text-xs uppercase tracking-wide text-[#b6abd9] mb-1">
@@ -145,6 +161,56 @@ export default function AddSceneForm({ onClose }: { onClose: () => void }) {
         </div>
 
         <label className="block text-xs uppercase tracking-wide text-[#b6abd9] mb-2">
+          When
+        </label>
+        <div className="flex bg-[#2d2949] rounded-lg p-1 mb-3">
+          <button
+            type="button"
+            onClick={() => setWhenMode("now")}
+            className={`flex-1 text-xs font-semibold py-2 rounded-md ${
+              whenMode === "now" ? "bg-[#b298e7] text-[#1e1830]" : "text-[#b6abd9]"
+            }`}
+          >
+            ⚡ Right now
+          </button>
+          <button
+            type="button"
+            onClick={() => setWhenMode("schedule")}
+            className={`flex-1 text-xs font-semibold py-2 rounded-md ${
+              whenMode === "schedule" ? "bg-[#b298e7] text-[#1e1830]" : "text-[#b6abd9]"
+            }`}
+          >
+            🗓️ Schedule
+          </button>
+        </div>
+
+        {whenMode === "schedule" && (
+          <input
+            type="datetime-local"
+            value={startsAtLocal}
+            onChange={(e) => setStartsAtLocal(e.target.value)}
+            className="w-full rounded-lg bg-[#2d2949] border border-white/10 px-4 py-3 text-sm mb-3 outline-none focus:border-[#b298e7]"
+          />
+        )}
+
+        <label className="flex items-center gap-2 text-xs text-[#b6abd9] mb-2">
+          <input
+            type="checkbox"
+            checked={hasEndTime}
+            onChange={(e) => setHasEndTime(e.target.checked)}
+          />
+          Set an end time (scene disappears from Radar after this)
+        </label>
+        {hasEndTime && (
+          <input
+            type="datetime-local"
+            value={endsAtLocal}
+            onChange={(e) => setEndsAtLocal(e.target.value)}
+            className="w-full rounded-lg bg-[#2d2949] border border-white/10 px-4 py-3 text-sm mb-3 outline-none focus:border-[#b298e7]"
+          />
+        )}
+
+        <label className="block text-xs uppercase tracking-wide text-[#b6abd9] mb-2 mt-1">
           Location
         </label>
         <div className="flex bg-[#2d2949] rounded-lg p-1 mb-3">

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { joinScene, leaveScene, updateScene, deleteScene } from "./actions";
+import { useRouter, useSearchParams } from "next/navigation";
+import { joinScene, leaveScene, updateScene, deleteScene, inviteToScene } from "./actions";
 import { distanceKm, etaMinutes } from "@/lib/distance";
+import { getSceneStatus, formatSceneTime } from "@/lib/sceneStatus";
 import { createClient } from "@/lib/supabase/client";
 import AddSceneForm from "./AddSceneForm";
-import type { Scene, Attendee } from "./page";
+import type { Scene, Attendee, InvitablePerson } from "./page";
 
 const FILTERS = ["All", "Coworking", "Café Scene", "Founders", "Pop-up Scene", "Party"];
 
@@ -41,6 +42,18 @@ function AvatarStack({ attendees }: { attendees: Attendee[] }) {
   );
 }
 
+function StatusBadge({ scene }: { scene: Scene }) {
+  const status = getSceneStatus(scene.starts_at, scene.ends_at);
+  if (status === "live") {
+    return <span className="text-[10px] font-mono text-[#8fe3e9]">● LIVE</span>;
+  }
+  return (
+    <span className="text-[10px] font-mono text-[#b6abd9]">
+      🕒 {formatSceneTime(scene.starts_at)}
+    </span>
+  );
+}
+
 const TAGS = ["Coworking", "Café Scene", "Founders", "Pop-up Scene", "Party"];
 
 function EditSceneForm({
@@ -55,13 +68,22 @@ function EditSceneForm({
   const [name, setName] = useState(scene.name);
   const [tag, setTag] = useState(scene.tag);
   const [vibe, setVibe] = useState(scene.vibe ?? "");
+  const [hasEndTime, setHasEndTime] = useState(!!scene.ends_at);
+  const [endsAtLocal, setEndsAtLocal] = useState(
+    scene.ends_at ? scene.ends_at.slice(0, 16) : ""
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   async function save() {
     setSaving(true);
     setError("");
-    const result = await updateScene(scene.id, { name, tag, vibe });
+    const result = await updateScene(scene.id, {
+      name,
+      tag,
+      vibe,
+      endsAt: hasEndTime && endsAtLocal ? new Date(endsAtLocal).toISOString() : null,
+    });
     setSaving(false);
     if (result.error) {
       setError(result.error);
@@ -107,6 +129,22 @@ function EditSceneForm({
         onChange={(e) => setVibe(e.target.value)}
         className="w-full rounded-lg bg-[#2d2949] border border-white/10 px-4 py-3 text-sm mb-3 outline-none focus:border-[#b298e7]"
       />
+      <label className="flex items-center gap-2 text-xs text-[#b6abd9] mb-2">
+        <input
+          type="checkbox"
+          checked={hasEndTime}
+          onChange={(e) => setHasEndTime(e.target.checked)}
+        />
+        Set an end time
+      </label>
+      {hasEndTime && (
+        <input
+          type="datetime-local"
+          value={endsAtLocal}
+          onChange={(e) => setEndsAtLocal(e.target.value)}
+          className="w-full rounded-lg bg-[#2d2949] border border-white/10 px-4 py-3 text-sm mb-3 outline-none focus:border-[#b298e7]"
+        />
+      )}
       {error && <p className="text-sm text-[#ef7fa8] mb-2">{error}</p>}
       <div className="flex gap-2">
         <button
@@ -127,11 +165,101 @@ function EditSceneForm({
   );
 }
 
+function InvitePanel({
+  scene,
+  people,
+  onClose,
+}: {
+  scene: Scene;
+  people: InvitablePerson[];
+  onClose: () => void;
+}) {
+  const [sentTo, setSentTo] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
+  const shareUrl =
+    typeof window !== "undefined" ? `${window.location.origin}/radar?scene=${scene.id}` : "";
+
+  async function share() {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: scene.name,
+          text: `Come join "${scene.name}" on Aaj Kya Scene Hai!`,
+          url: shareUrl,
+        });
+      } catch {
+        // user cancelled — no need to show an error
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  async function sendInvite(personId: string) {
+    await inviteToScene(personId, scene.id, scene.name);
+    setSentTo((s) => [...s, personId]);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-[70] flex items-end" onClick={onClose}>
+      <div
+        className="bg-[#221f38] w-full max-w-sm mx-auto rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mb-4" />
+        <h2 className="font-bold text-lg mb-1">Invite people</h2>
+        <p className="text-xs text-[#b6abd9] mb-4">to &quot;{scene.name}&quot;</p>
+
+        <button
+          onClick={share}
+          className="w-full rounded-lg border border-[#b298e7]/40 text-[#b298e7] font-semibold py-2.5 text-sm mb-4"
+        >
+          {copied ? "✓ Link copied!" : "🔗 Share link"}
+        </button>
+
+        <div className="text-xs uppercase tracking-wide text-[#b6abd9] mb-2">
+          Or invite directly
+        </div>
+        {people.length === 0 && (
+          <p className="text-sm text-[#b6abd9]">No one else has signed up yet.</p>
+        )}
+        <div className="space-y-2">
+          {people.map((p) => {
+            const sent = sentTo.includes(p.id);
+            return (
+              <div
+                key={p.id}
+                className="flex items-center justify-between rounded-lg bg-[#2d2949] px-3 py-2.5"
+              >
+                <span className="text-sm">{p.name || "Unnamed"}</span>
+                <button
+                  onClick={() => sendInvite(p.id)}
+                  disabled={sent}
+                  className={
+                    sent
+                      ? "text-xs font-semibold text-[#8fe3e9]"
+                      : "text-xs font-semibold text-[#b298e7]"
+                  }
+                >
+                  {sent ? "✓ Invited" : "Invite"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DetailSheet({
   scene,
   attendees,
   isJoined,
   isOwner,
+  invitablePeople,
   onClose,
   onToggle,
   pending,
@@ -140,6 +268,7 @@ function DetailSheet({
   attendees: Attendee[];
   isJoined: boolean;
   isOwner: boolean;
+  invitablePeople: InvitablePerson[];
   onClose: () => void;
   onToggle: () => void;
   pending: boolean;
@@ -149,6 +278,9 @@ function DetailSheet({
   const [locationDenied, setLocationDenied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+
+  const status = getSceneStatus(scene.starts_at, scene.ends_at);
 
   useEffect(() => {
     if (!("geolocation" in navigator)) {
@@ -157,12 +289,7 @@ function DetailSheet({
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const km = distanceKm(
-          pos.coords.latitude,
-          pos.coords.longitude,
-          scene.lat,
-          scene.lng
-        );
+        const km = distanceKm(pos.coords.latitude, pos.coords.longitude, scene.lat, scene.lng);
         setDistance(km);
       },
       () => setLocationDenied(true),
@@ -204,9 +331,7 @@ function DetailSheet({
                   <span className="text-[10px] font-bold uppercase text-[#b6abd9]">
                     {scene.tag}
                   </span>
-                  {scene.is_live && (
-                    <span className="text-[10px] font-mono text-[#8fe3e9]">● LIVE</span>
-                  )}
+                  <StatusBadge scene={scene} />
                 </div>
               </div>
               <button onClick={onClose} className="text-[#b6abd9] text-sm">
@@ -214,21 +339,40 @@ function DetailSheet({
               </button>
             </div>
 
-            {isOwner && (
-              <div className="flex gap-2 mb-3">
-                <button
-                  onClick={() => setEditing(true)}
-                  className="text-xs font-semibold text-[#b6abd9] border border-white/10 rounded-lg px-3 py-1.5"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="text-xs font-semibold text-[#ef7fa8] border border-[#ef7fa8]/30 rounded-lg px-3 py-1.5 disabled:opacity-60"
-                >
-                  {deleting ? "Deleting..." : "Delete"}
-                </button>
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => setShowInvite(true)}
+                className="text-xs font-semibold text-[#8fe3e9] border border-[#8fe3e9]/30 rounded-lg px-3 py-1.5"
+              >
+                📤 Invite
+              </button>
+              {isOwner && (
+                <>
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="text-xs font-semibold text-[#b6abd9] border border-white/10 rounded-lg px-3 py-1.5"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="text-xs font-semibold text-[#ef7fa8] border border-[#ef7fa8]/30 rounded-lg px-3 py-1.5 disabled:opacity-60"
+                  >
+                    {deleting ? "Deleting..." : "Delete"}
+                  </button>
+                </>
+              )}
+            </div>
+
+            {status === "upcoming" && (
+              <div className="text-xs text-[#b298e7] bg-[#b298e7]/10 rounded-lg px-3 py-2 mb-3">
+                🗓️ Starts {formatSceneTime(scene.starts_at)}
+              </div>
+            )}
+            {scene.ends_at && (
+              <div className="text-xs text-[#b6abd9] mb-3">
+                Ends {formatSceneTime(scene.ends_at)}
               </div>
             )}
 
@@ -305,6 +449,10 @@ function DetailSheet({
           </>
         )}
       </div>
+
+      {showInvite && (
+        <InvitePanel scene={scene} people={invitablePeople} onClose={() => setShowInvite(false)} />
+      )}
     </div>
   );
 }
@@ -315,12 +463,14 @@ export default function RadarList({
   attendeesByScene,
   myCheckins,
   currentUserId,
+  invitablePeople,
 }: {
   scenes: Scene[];
   countByScene: Record<number, number>;
   attendeesByScene: Record<number, Attendee[]>;
   myCheckins: number[];
   currentUserId: string;
+  invitablePeople: InvitablePerson[];
 }) {
   const [filter, setFilter] = useState("All");
   const [selected, setSelected] = useState<Scene | null>(null);
@@ -328,19 +478,28 @@ export default function RadarList({
   const [joined, setJoined] = useState<number[]>(myCheckins);
   const [showAddForm, setShowAddForm] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Keep "joined" in sync with the server. Without this, creating a
-  // scene (which auto-checks you in server-side) or any other change
-  // that refreshes the page wouldn't be reflected here, since this
-  // state only initializes once on first render otherwise.
+  // Keep "joined" in sync with the server — otherwise creating a scene
+  // (which auto-checks you in server-side) wouldn't be reflected here.
   useEffect(() => {
     setJoined(myCheckins);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myCheckins.join(",")]);
 
+  // Deep link support: /radar?scene=123 opens that scene's detail
+  // sheet automatically — this is what invite links point to.
+  useEffect(() => {
+    const sceneParam = searchParams.get("scene");
+    if (sceneParam) {
+      const match = scenes.find((s) => s.id === Number(sceneParam));
+      if (match) setSelected(match);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, scenes.length]);
+
   // Live updates: whenever anyone joins/leaves a scene or a new scene
-  // is created, refresh the server data so counts and attendees stay
-  // current without needing a manual page reload.
+  // is created, refresh the server data.
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -378,7 +537,7 @@ export default function RadarList({
         onClick={() => setShowAddForm(true)}
         className="w-full rounded-2xl border border-dashed border-[#b298e7]/40 text-[#b298e7] font-semibold text-sm py-3 mb-4"
       >
-        + Start a Scene where you are
+        + Start a Scene
       </button>
 
       <div className="flex gap-2 overflow-x-auto mb-4 pb-1">
@@ -412,9 +571,7 @@ export default function RadarList({
                 <span className="text-xs font-bold uppercase tracking-wide text-[#b6abd9]">
                   {scene.tag}
                 </span>
-                {scene.is_live && (
-                  <span className="text-[10px] font-mono text-[#8fe3e9]">● LIVE</span>
-                )}
+                <StatusBadge scene={scene} />
               </div>
               <div className="font-bold text-[15px] mb-1">{scene.name}</div>
               {scene.vibe && (
@@ -453,6 +610,7 @@ export default function RadarList({
           attendees={attendeesByScene[selected.id] ?? []}
           isJoined={joined.includes(selected.id)}
           isOwner={selected.created_by === currentUserId}
+          invitablePeople={invitablePeople}
           pending={pendingId === selected.id}
           onClose={() => setSelected(null)}
           onToggle={() => toggle(selected.id)}
