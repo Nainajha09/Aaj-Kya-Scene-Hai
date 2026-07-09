@@ -35,6 +35,16 @@ export default async function ChatsPage() {
     unreadBySender[m.sender_id] = (unreadBySender[m.sender_id] ?? 0) + 1;
   });
 
+  // Named, real-looking profiles first — people who haven't finished
+  // onboarding (no name set) get pushed to the bottom instead of
+  // being scattered throughout the list.
+  const sortedPeople = [...(people ?? [])].sort((a, b) => {
+    const aHasName = a.name?.trim() ? 1 : 0;
+    const bHasName = b.name?.trim() ? 1 : 0;
+    if (aHasName !== bHasName) return bHasName - aHasName;
+    return (a.name || "").localeCompare(b.name || "");
+  });
+
   return (
     <main className="min-h-screen bg-[#15132a] text-[#f3eefb] p-6 pb-20">
       <div className="max-w-sm mx-auto">
@@ -43,14 +53,14 @@ export default async function ChatsPage() {
           Real conversations, not cold DMs.
         </p>
 
-        {(!people || people.length === 0) && (
+        {(!sortedPeople || sortedPeople.length === 0) && (
           <p className="text-sm text-[#b6abd9]">
             No one else has signed up yet — invite someone to test this with!
           </p>
         )}
 
         <div className="space-y-3">
-          {(people ?? []).map((p) => {
+          {sortedPeople.map((p) => {
             const unread = unreadBySender[p.id] ?? 0;
             return (
               <a
