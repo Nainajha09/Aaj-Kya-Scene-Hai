@@ -55,6 +55,7 @@ function EditSceneForm({
   const [name, setName] = useState(scene.name);
   const [tag, setTag] = useState(scene.tag);
   const [vibe, setVibe] = useState(scene.vibe ?? "");
+  const [startsAtLocal, setStartsAtLocal] = useState(scene.starts_at.slice(0, 16));
   const [hasEndTime, setHasEndTime] = useState(!!scene.ends_at);
   const [endsAtLocal, setEndsAtLocal] = useState(
     scene.ends_at ? scene.ends_at.slice(0, 16) : ""
@@ -69,6 +70,7 @@ function EditSceneForm({
       name,
       tag,
       vibe,
+      startsAt: new Date(startsAtLocal).toISOString(),
       endsAt: hasEndTime && endsAtLocal ? new Date(endsAtLocal).toISOString() : null,
     });
     setSaving(false);
@@ -114,6 +116,15 @@ function EditSceneForm({
       <input
         value={vibe}
         onChange={(e) => setVibe(e.target.value)}
+        className="w-full rounded-lg bg-[#2d2949] border border-white/10 px-4 py-3 text-sm mb-3 outline-none focus:border-[#b298e7]"
+      />
+      <label className="block text-xs uppercase tracking-wide text-[#b6abd9] mb-1">
+        Starts at
+      </label>
+      <input
+        type="datetime-local"
+        value={startsAtLocal}
+        onChange={(e) => setStartsAtLocal(e.target.value)}
         className="w-full rounded-lg bg-[#2d2949] border border-white/10 px-4 py-3 text-sm mb-3 outline-none focus:border-[#b298e7]"
       />
       <label className="flex items-center gap-2 text-xs text-[#b6abd9] mb-2">
