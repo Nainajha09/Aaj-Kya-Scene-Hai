@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import ProfileForm from "./ProfileForm";
 import BottomNav from "@/components/BottomNav";
 import TourOverlay from "@/components/TourOverlay";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -30,14 +31,17 @@ export default async function ProfilePage() {
   return (
     <main className="min-h-screen bg-[#15132a] text-[#f3eefb] p-6 pb-20">
       <div className="max-w-sm mx-auto">
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-1 gap-2">
           <h1 className="text-2xl font-bold">Your Scene</h1>
-          <a
-            href="/guide"
-            className="text-xs font-semibold text-[#b298e7] bg-[#b298e7]/10 border border-[#b298e7]/30 rounded-full px-3 py-1.5 flex-shrink-0"
-          >
-            📖 How it works
-          </a>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <a
+              href="/guide"
+              className="text-xs font-semibold text-[#b298e7] bg-[#b298e7]/10 border border-[#b298e7]/30 rounded-full px-3 py-1.5"
+            >
+              📖 Guide
+            </a>
+            <LogoutButton />
+          </div>
         </div>
         <p className="text-sm text-[#b6abd9] mb-6">{user.email}</p>
         <ProfileForm initialProfile={profile} />

@@ -96,6 +96,17 @@ export default function LoginPage() {
             >
               {loading ? "Verifying..." : "Verify & continue"}
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("email");
+                setCode("");
+                setError("");
+              }}
+              className="w-full text-xs font-semibold text-[#b6abd9] py-1"
+            >
+              ← Wrong email? Go back
+            </button>
           </form>
         )}
 
